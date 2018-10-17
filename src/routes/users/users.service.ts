@@ -1,8 +1,6 @@
-import * as bcrypt from "bcrypt";
 import * as crypto from "crypto";
 import { IUser } from "interfaces";
 import { Users } from "../../models";
-import { randomString } from "../../utils";
 const createUser = (Req: IUser, model: IUser | any = {}): Promise<any> => {
   const newUser = new Users(model);
   newUser._id = crypto
@@ -13,10 +11,12 @@ const createUser = (Req: IUser, model: IUser | any = {}): Promise<any> => {
   newUser.lastName = Req.lastName;
   newUser.defaultAccount = null;
   newUser.email = Req.email;
-  newUser.mailConfirm = randomString;
+  newUser.mailConfirm = crypto.randomBytes(32).toString("hex");
   newUser.state = 0;
-  newUser.password = bcrypt.hashSync(Req.password, 12);
-
+  newUser.password = crypto
+    .createHmac("sha256", process.env.SECRET_KEY)
+    .update(Req.password)
+    .digest("hex");
   return newUser.save();
 };
 

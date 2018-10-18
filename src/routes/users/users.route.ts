@@ -12,4 +12,7 @@ router.post("/sign-up", (req: Request, res: Response) => {
     err => res.send({ status: false, message: err.message })
   );
 });
+router.post("/sign-in", (req: Request, res: Response) => {
+  userService.login(req.body).then(response => res.send({ status: true, data: response }), err => res.send({ status: false, message: err.message }));
+});
 export default router;

@@ -1,6 +1,5 @@
 import { IUser } from "interfaces";
 import { Model, model, Schema } from "mongoose";
-
 export const UserSchema: Schema = new Schema({
   firstName: { required: true, type: String },
   lastName: { required: true, type: String },

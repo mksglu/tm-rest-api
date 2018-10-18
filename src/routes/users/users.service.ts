@@ -1,5 +1,6 @@
 import * as crypto from "crypto";
 import { IUser } from "interfaces";
+import * as jwt from "jsonwebtoken";
 import { Users } from "../../models";
 const createUser = (Req: IUser, model: IUser | any = {}): Promise<any> => {
   const newUser = new Users(model);
@@ -19,5 +20,31 @@ const createUser = (Req: IUser, model: IUser | any = {}): Promise<any> => {
     .digest("hex");
   return newUser.save();
 };
+const loginUser = async (req: IUser): Promise<any> => {
+  const { email, password } = req;
+  if (!req.email || !req.password) {
+    return "Require Email / Require Password";
+  }
 
-export default { create: createUser };
+  try {
+    const u = await Users.findOne({ email });
+    if (!u) {
+      return { status: false, message: "user not found" };
+    }
+    const isPasswordValid =
+      crypto
+        .createHmac("sha256", process.env.SECRET_KEY)
+        .update(password)
+        .digest("hex") === u.password;
+    if (!isPasswordValid) {
+      return { status: false, message: "invalid password" };
+    }
+    const token = jwt.sign({ id: u._id }, process.env.JWT_ENCRYPTION, {
+      expiresIn: process.env.JWT_EXPIRATION
+    });
+    return { status: true, token };
+  } catch (error) {
+    return { status: false, message: error };
+  }
+};
+export default { create: createUser, login: loginUser };

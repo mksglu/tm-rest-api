@@ -12,7 +12,10 @@ const email = (email: String, token: String): any => {
     },
     data: {
       personalizations: [{ to: [{ email: email }] }],
-      from: { email: process.env.EMAIL_SENDER_ADRESS },
+      from: {
+        name: process.env.EMAIL_SENDER_NAME,
+        email: process.env.EMAIL_SENDER_ADRESS
+      },
       subject: process.env.EMAIL_SUBJECT,
       content: [{ type: "text/html", value: msg }]
     }

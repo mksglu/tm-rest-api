@@ -1,11 +1,9 @@
 import * as bodyParser from "body-parser";
 import * as cors from "cors";
-import * as dotenv from "dotenv";
 import * as express from "express";
 import * as mongoose from "mongoose";
+import config from "./config";
 import { Routes } from "./routes/";
-dotenv.config();
-
 class App {
   public app: express.Application;
   public routePrv: Routes = new Routes();
@@ -25,7 +23,7 @@ class App {
 
   private mongoSetup(): void {
     mongoose.connect(
-      process.env.MONGODB_STR,
+      config.connectionStr,
       { useNewUrlParser: true }
     );
   }

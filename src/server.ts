@@ -1,6 +1,7 @@
-import app from './app';
-const PORT = process.env.PORT;
+import app from "./app";
+import config from "./config";
+const PORT = config.port;
 
 app.listen(PORT, () => {
-  console.log('Express server listening on port ' + PORT);
+  console.log("Express server listening on port " + PORT);
 });

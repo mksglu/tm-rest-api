@@ -1,1 +1,1 @@
-export { default as isUserAuthenticated, IauthMiddleware } from "./authMiddleware";
+export { default as isUserAuthenticated } from "./authMiddleware";

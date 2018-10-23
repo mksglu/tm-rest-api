@@ -57,4 +57,21 @@ const getUser = async (userId: string, paramId: string): Promise<any> => {
     return { status: false, message: error };
   }
 };
-export default { create: createUser, login: loginUser, getUser };
+const updateMe = async (userId: string, req: IUser): Promise<any> => {
+  try {
+    // if (req.password) {
+    //   req.password = "dfdfdf";
+    // }
+    const u = await Users.findByIdAndUpdate(userId, req, { new: true }).select("+password");
+    if (!u) return { status: false, message: "USER_NOT_UPDATED" };
+    return { status: true, data: u };
+  } catch (error) {
+    return { status: false, message: error };
+  }
+};
+// const updateUser = async (userId:string,paramId:string,req:IUser): Promise<any> => {try {
+//   const u = await findBy
+// } catch (error) {
+
+// }}
+export default { create: createUser, login: loginUser, getUser, updateMe };

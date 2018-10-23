@@ -51,7 +51,7 @@ const loginUser = async (req: IUser): Promise<any> => {
 const getUser = async (userId: string, paramId: string): Promise<any> => {
   try {
     let u = await Users.findOne({ _id: userId });
-    if (!u || u._id !== paramId) return { status: false, message: "USER_NOT_FOUND" };
+    if (!u || u._id !== paramId || userId !== paramId) return { status: false, message: "USER_NOT_FOUND" };
     return { status: true, data: { ...u["_doc"] } };
   } catch (error) {
     return { status: false, message: error };
@@ -59,19 +59,32 @@ const getUser = async (userId: string, paramId: string): Promise<any> => {
 };
 const updateMe = async (userId: string, req: IUser): Promise<any> => {
   try {
-    // if (req.password) {
-    //   req.password = "dfdfdf";
-    // }
-    const u = await Users.findByIdAndUpdate(userId, req, { new: true }).select("+password");
+    if (req.password)
+      req.password = crypto
+        .createHmac("sha256", config.passwordSecretKey)
+        .update(req.password)
+        .digest("hex");
+    const u = await Users.findByIdAndUpdate(userId, req, { new: true });
     if (!u) return { status: false, message: "USER_NOT_UPDATED" };
     return { status: true, data: u };
   } catch (error) {
     return { status: false, message: error };
   }
 };
-// const updateUser = async (userId:string,paramId:string,req:IUser): Promise<any> => {try {
-//   const u = await findBy
-// } catch (error) {
+const updateUser = async (userId: string, paramId: string, req: IUser): Promise<any> => {
+  try {
+    if (req.password)
+      req.password = crypto
+        .createHmac("sha256", config.passwordSecretKey)
+        .update(req.password)
+        .digest("hex");
+    if (userId !== paramId) return { status: false, message: "USER_NOT_FOUND" };
+    const u = await Users.findByIdAndUpdate(paramId, req, { new: true });
+    if (!u || u._id !== paramId) return { status: false, message: "USER_NOT_UPDATED" };
+    return { status: true, data: u };
+  } catch (error) {
+    return { status: false, message: error };
+  }
+};
 
-// }}
-export default { create: createUser, login: loginUser, getUser, updateMe };
+export default { create: createUser, login: loginUser, getUser, updateMe, updateUser };

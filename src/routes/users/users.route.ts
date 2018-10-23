@@ -26,11 +26,20 @@ router.get("/users/:paramId", isUserAuthenticated, (req: IAuthMiddleware, res: R
   });
 });
 router.put("/me", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
-  console.log("PUTLANDINIZ");
   const {
     userId: { id }
   } = req;
   userService.updateMe(id, req.body).then(response => {
+    if (!response.status) res.status(400).send(response);
+    res.status(201).send(response);
+  });
+});
+router.put("/users/:paramId", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
+  const {
+    userId: { id },
+    params: { paramId }
+  } = req;
+  userService.updateUser(id, paramId, req.body).then(response => {
     if (!response.status) res.status(400).send(response);
     res.status(201).send(response);
   });

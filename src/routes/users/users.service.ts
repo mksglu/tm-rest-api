@@ -3,7 +3,8 @@ import { IUser } from "interfaces";
 import * as jwt from "jsonwebtoken";
 import config from "../../config";
 import { Users } from "../../models";
-const createUser = (req: IUser, model: IUser | any = {}): Promise<any> => {
+import mailConfirm from "../mail/mail.service";
+const createUser = (req: IUser, model: IUser | any = {}): any => {
   const newUser = new Users(model);
   newUser._id = crypto
     .createHash("md5")
@@ -19,9 +20,16 @@ const createUser = (req: IUser, model: IUser | any = {}): Promise<any> => {
     .createHmac("sha256", config.passwordSecretKey)
     .update(req.password)
     .digest("hex");
-  return newUser.save();
+  return newUser
+    .save()
+    .then(response => {
+      mailConfirm(response.email, response.mailConfirm);
+      return { status: true, data: response };
+    })
+    .catch(error => {
+      return { status: false, message: error };
+    });
 };
-
 const loginUser = async (req: IUser): Promise<any> => {
   const { email, password } = req;
   if (!req.email || !req.password) return { status: false, message: "REQUIRE_EMAIL_OR_PASSWORD" };

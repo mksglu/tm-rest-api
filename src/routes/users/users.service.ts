@@ -4,31 +4,30 @@ import * as jwt from "jsonwebtoken";
 import config from "../../config";
 import { Users } from "../../models";
 import mailSenderService from "../mail/mail.service";
-const createUser = (req: IUser, model: IUser | any = {}): any => {
-  const newUser = new Users(model);
-  newUser._id = crypto
-    .createHash("md5")
-    .update(`${req.firstName}-${req.lastName}-${req.firstName}-${req.email}`)
-    .digest("hex");
-  newUser.firstName = req.firstName;
-  newUser.lastName = req.lastName;
-  newUser.defaultAccount = null;
-  newUser.email = req.email;
-  newUser.mailConfirm = crypto.randomBytes(32).toString("hex");
-  newUser.state = 0;
-  newUser.password = crypto
-    .createHmac("sha256", config.passwordSecretKey)
-    .update(req.password)
-    .digest("hex");
-  return newUser
-    .save()
-    .then(response => {
-      mailSenderService(response.email, response.mailConfirm);
-      return { status: true, data: response };
-    })
-    .catch(error => {
-      return { status: false, message: error };
-    });
+const createUser = async (req: IUser): Promise<any> => {
+  const User = new Users({
+    _id: crypto
+      .createHash("md5")
+      .update(`${req.firstName}-${req.lastName}-${req.firstName}-${req.email}`)
+      .digest("hex"),
+    firstName: req.firstName,
+    lastName: req.lastName,
+    defaultAccount: null,
+    email: req.email,
+    mailConfirm: crypto.randomBytes(32).toString("hex"),
+    state: 0,
+    password: crypto
+      .createHmac("sha256", config.passwordSecretKey)
+      .update(req.password)
+      .digest("hex")
+  });
+  try {
+    let newUser = await User.save();
+    mailSenderService(newUser.email, newUser.mailConfirm);
+    return { status: true, data: newUser };
+  } catch (error) {
+    return { status: false, message: error };
+  }
 };
 const loginUser = async (req: IUser): Promise<any> => {
   const { email, password } = req;

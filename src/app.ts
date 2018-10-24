@@ -26,6 +26,7 @@ class App {
       config.connectionStr,
       { useNewUrlParser: true }
     );
+    mongoose.set("useCreateIndex", true);
   }
 }
 

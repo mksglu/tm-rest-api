@@ -3,30 +3,61 @@ import { IAuthMiddleware } from "../../interfaces";
 import { isUserAuthenticated } from "../../middleware";
 import userService from "./users.service";
 const router = Router();
-
 router.post("/sign-up", (req: Request, res: Response) => {
   userService.create(req.body).then(response => {
-    if (!response.status) res.status(400).send(response);
-    res.status(201).send(response);
+    if (!response.status) return res.status(400).send(response);
+    return res.status(201).send(response);
   });
 });
-
 router.post("/sign-in", (req: Request, res: Response) => {
   userService.login(req.body).then(response => {
-    if (!response.status) res.status(400).send(response);
-    res.status(201).send(response);
+    if (!response.status) return res.status(400).send(response);
+    return res.status(201).send(response);
   });
 });
-
 router.get("/users/:paramId", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
   const {
     userId: { id },
     params: { paramId }
   } = req;
   userService.getUser(id, paramId).then(response => {
-    if (!response.status) res.status(400).send(response);
-    res.status(200).send(response);
+    if (!response.status) return res.status(400).send(response);
+    return res.status(200).send(response);
   });
 });
-
+router.put("/me", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
+  const {
+    userId: { id }
+  } = req;
+  userService.updateMe(id, req.body).then(response => {
+    if (!response.status) return res.status(400).send(response);
+    return res.status(201).send(response);
+  });
+});
+router.put("/users/:paramId", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
+  const {
+    userId: { id },
+    params: { paramId }
+  } = req;
+  userService.updateUser(id, paramId, req.body).then(response => {
+    if (!response.status) return res.status(400).send(response);
+    return res.status(201).send(response);
+  });
+});
+router.put("/me/mail-confirm/:paramKey", (req: Request, res: Response) => {
+  const {
+    params: { paramKey }
+  } = req;
+  userService.mailConfirm(paramKey).then(response => {
+    if (!response.status) return res.status(400).send(response);
+    return res.status(201).send(response);
+  });
+});
+router.get("/me", (req: Request, res: Response) => {
+  const fakeId = "9cc3b8330347db0eca3556dafc47b8c5";
+  userService.getMe(fakeId).then(response => {
+    if (!response.status) return res.status(400).send(response);
+    return res.status(200).send(response);
+  });
+});
 export default router;

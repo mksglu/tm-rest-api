@@ -3,7 +3,7 @@ import { IUser } from "interfaces";
 import * as jwt from "jsonwebtoken";
 import config from "../../config";
 import { Users } from "../../models";
-import mailConfirm from "../mail/mail.service";
+import mailSenderService from "../mail/mail.service";
 const createUser = (req: IUser, model: IUser | any = {}): any => {
   const newUser = new Users(model);
   newUser._id = crypto
@@ -23,7 +23,7 @@ const createUser = (req: IUser, model: IUser | any = {}): any => {
   return newUser
     .save()
     .then(response => {
-      mailConfirm(response.email, response.mailConfirm);
+      mailSenderService(response.email, response.mailConfirm);
       return { status: true, data: response };
     })
     .catch(error => {
@@ -86,5 +86,24 @@ const updateUser = async (userId: string, paramId: string, req: IUser): Promise<
     return { status: false, message: error };
   }
 };
-
-export default { create: createUser, login: loginUser, getUser, updateMe, updateUser };
+const mailConfirm = async (paramKey: string): Promise<any> => {
+  try {
+    const getUser = await Users.findOne({ mailConfirm: paramKey });
+    const updateState = await Users.findByIdAndUpdate(getUser._id, { state: 1 }, { new: true });
+    if (!getUser || !updateState) return { status: false, message: "BAD_KEY" };
+    const token = jwt.sign({ id: getUser._id }, config.jwtSecretKey);
+    return { status: true, data: { token } };
+  } catch (error) {
+    return { status: false, message: error };
+  }
+};
+const getMe = async (userId: string): Promise<any> => {
+  try {
+    const u = await Users.findById(userId);
+    if (!u) return { status: false, message: "USER_NOT_FOUND" };
+    return { status: true, data: u };
+  } catch (error) {
+    return { status: false, message: error };
+  }
+};
+export default { create: createUser, login: loginUser, getUser, updateMe, updateUser, mailConfirm, getMe };

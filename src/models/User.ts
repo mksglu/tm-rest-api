@@ -1,6 +1,7 @@
 import { IUser } from "interfaces";
 import { Model, model, Schema } from "mongoose";
 export const UserSchema: Schema = new Schema({
+  accounts: { type: Array, default: [] },
   firstName: { required: true, type: String },
   lastName: { required: true, type: String },
   email: { required: true, type: String, unique: true },

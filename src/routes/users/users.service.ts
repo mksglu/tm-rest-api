@@ -2,7 +2,7 @@ import * as crypto from "crypto";
 import { IUser } from "interfaces";
 import * as jwt from "jsonwebtoken";
 import config from "../../config";
-import { Users } from "../../models";
+import { Invites, Users } from "../../models";
 import mailSenderService from "../mail/mail.service";
 const createUser = async (req: IUser): Promise<any> => {
   const User = new Users({
@@ -16,6 +16,7 @@ const createUser = async (req: IUser): Promise<any> => {
     email: req.email,
     mailConfirm: crypto.randomBytes(32).toString("hex"),
     state: 0,
+    accounts: [],
     password: crypto
       .createHmac("sha256", config.passwordSecretKey)
       .update(req.password)
@@ -105,4 +106,72 @@ const getMe = async (userId: string): Promise<any> => {
     return { status: false, message: error };
   }
 };
-export default { create: createUser, login: loginUser, getUser, updateMe, updateUser, mailConfirm, getMe };
+const inviteUser = async (inviteEmail: string, accountId: string): Promise<any> => {
+  try {
+    const isMember = await Users.countDocuments({ email: inviteEmail });
+    const isAlreadyInvited = await Invites.countDocuments({ email: inviteEmail });
+    if (isAlreadyInvited) return { status: false, message: "ALREADY_INVITED" };
+    const mainUser = await Users.findById(accountId);
+    const inviteUserId = crypto
+      .createHash("md5")
+      .update(inviteEmail)
+      .digest("hex");
+    if (!isMember) {
+      const inviteUser = new Invites({
+        _id: inviteUserId,
+        accountId: mainUser.defaultAccount,
+        inviteHash: crypto.randomBytes(32).toString("hex"),
+        email: inviteEmail,
+        state: 2
+      });
+      const newInvites = await inviteUser.save();
+      return { status: true, isMember: false, data: { email: newInvites.email } };
+    } else {
+      const User = await Users.findOne({ email: inviteEmail });
+      const inviteUsers = new Invites({
+        _id: inviteUserId,
+        email: inviteEmail,
+        accountId: User.defaultAccount,
+        inviteHash: crypto.randomBytes(32).toString("hex"),
+        state: 1
+      });
+      await Users.findOneAndUpdate({ email: inviteEmail }, { $push: { accounts: accountId }, $set: { defaultAccount: accountId } });
+      await inviteUsers.save();
+      return { status: true, isMember: true };
+    }
+  } catch (error) {
+    return { status: false, message: error };
+  }
+};
+const createInvitedUser = async (inviteHash: string, userId: string, req: IUser): Promise<any> => {
+  try {
+    const mainUser = await Users.findById(userId);
+    if (!mainUser) return { status: false, message: "WRONG_USER_ID" };
+    const InvitedUser = await Invites.findOneAndUpdate({ inviteHash }, { $set: { state: 1 } }, { new: true });
+    if (!InvitedUser) return { status: false, message: "WRONG_HASH" };
+    const User = new Users({
+      _id: crypto
+        .createHash("md5")
+        .update(`${req.firstName}-${req.lastName}-${req.firstName}-${InvitedUser.email}`)
+        .digest("hex"),
+      firstName: req.firstName,
+      lastName: req.lastName,
+      defaultAccount: mainUser._id,
+      email: InvitedUser.email,
+      mailConfirm: crypto.randomBytes(32).toString("hex"),
+      state: 1,
+      accounts: [mainUser._id],
+      password: crypto
+        .createHmac("sha256", config.passwordSecretKey)
+        .update(req.password)
+        .digest("hex")
+    });
+    const newInvitedUser = await User.save();
+    await Invites.findByIdAndUpdate(InvitedUser._id, { accountId: newInvitedUser.defaultAccount });
+    const token = jwt.sign({ id: newInvitedUser._id }, config.jwtSecretKey);
+    return { status: true, data: { token, user: { ...newInvitedUser["_doc"] } } };
+  } catch (error) {
+    return { status: false, message: error };
+  }
+};
+export default { createUser, loginUser, getUser, updateMe, updateUser, mailConfirm, getMe, inviteUser, createInvitedUser };

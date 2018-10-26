@@ -109,13 +109,13 @@ const getMe = async (userId: string): Promise<any> => {
 const inviteUser = async (inviteEmail: string, accountId: string): Promise<any> => {
   try {
     const isMember = await Users.countDocuments({ email: inviteEmail });
-    const isAlreadyInvited = await Invites.countDocuments({ email: inviteEmail });
-    if (isAlreadyInvited) return { status: false, message: "ALREADY_INVITED" };
     const mainUser = await Users.findById(accountId);
     const inviteUserId = crypto
       .createHash("md5")
-      .update(inviteEmail)
+      .update(`${inviteEmail}-${accountId}`)
       .digest("hex");
+    const isAlreadyInvited = await Invites.countDocuments({ email: inviteEmail, _id: inviteUserId });
+    if (isAlreadyInvited) return { status: false, message: "ALREADY_INVITED" };
     if (!isMember) {
       const inviteUser = new Invites({
         _id: inviteUserId,

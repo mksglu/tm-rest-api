@@ -174,4 +174,14 @@ const createInvitedUser = async (inviteHash: string, userId: string, req: IUser)
     return { status: false, message: error };
   }
 };
-export default { createUser, loginUser, getUser, updateMe, updateUser, mailConfirm, getMe, inviteUser, createInvitedUser };
+const getUserAccounts = async (userId: string): Promise<any> => {
+  try {
+    const u = await Users.findById(userId)
+      .populate("accounts", "firstName lastName email")
+      .exec();
+    return { status: true, data: { ...u["_doc"] } };
+  } catch (error) {
+    return { status: false, message: error };
+  }
+};
+export default { createUser, loginUser, getUser, updateMe, updateUser, mailConfirm, getMe, inviteUser, createInvitedUser, getUserAccounts };

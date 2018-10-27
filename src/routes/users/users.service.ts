@@ -127,15 +127,15 @@ const inviteUser = async (inviteEmail: string, accountId: string): Promise<any> 
       const newInvites = await inviteUser.save();
       return { status: true, isMember: false, data: { email: newInvites.email } };
     } else {
-      const User = await Users.findOne({ email: inviteEmail });
+      const companyFakeId = "company-fakeId";
       const inviteUsers = new Invites({
         _id: inviteUserId,
         email: inviteEmail,
-        accountId: User.defaultAccount,
+        accountId: companyFakeId,
         inviteHash: crypto.randomBytes(32).toString("hex"),
         state: 1
       });
-      await Users.findOneAndUpdate({ email: inviteEmail }, { $push: { accounts: accountId }, $set: { defaultAccount: accountId } });
+      await Users.findOneAndUpdate({ email: inviteEmail }, { $push: { accounts: companyFakeId }, $set: { defaultAccount: companyFakeId } });
       await inviteUsers.save();
       return { status: true, isMember: true };
     }
@@ -149,6 +149,7 @@ const createInvitedUser = async (inviteHash: string, userId: string, req: IUser)
     if (!mainUser) return { status: false, message: "WRONG_USER_ID" };
     const InvitedUser = await Invites.findOneAndUpdate({ inviteHash }, { $set: { state: 1 } }, { new: true });
     if (!InvitedUser) return { status: false, message: "WRONG_HASH" };
+    const companyFakeId = "company-fakeId";
     const User = new Users({
       _id: crypto
         .createHash("md5")
@@ -156,11 +157,11 @@ const createInvitedUser = async (inviteHash: string, userId: string, req: IUser)
         .digest("hex"),
       firstName: req.firstName,
       lastName: req.lastName,
-      defaultAccount: mainUser._id,
+      defaultAccount: companyFakeId,
       email: InvitedUser.email,
       mailConfirm: crypto.randomBytes(32).toString("hex"),
       state: 1,
-      accounts: [mainUser._id],
+      accounts: [companyFakeId],
       password: crypto
         .createHmac("sha256", config.passwordSecretKey)
         .update(req.password)
@@ -177,9 +178,9 @@ const createInvitedUser = async (inviteHash: string, userId: string, req: IUser)
 const getUserAccounts = async (userId: string): Promise<any> => {
   try {
     const u = await Users.findById(userId)
-      .populate("accounts", "firstName lastName email")
-      .exec();
-    return { status: true, data: { ...u["_doc"] } };
+      .select("_id")
+      .populate("accounts", "firstName lastName email");
+    return { status: true, data: { u } };
   } catch (error) {
     return { status: false, message: error };
   }

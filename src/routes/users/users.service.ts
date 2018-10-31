@@ -3,7 +3,7 @@ import { IUser } from "interfaces";
 import * as jwt from "jsonwebtoken";
 import config from "../../config";
 import { Invites, Users } from "../../models";
-import mailSenderService from "../mail/mail.service";
+import { emailTokenMail, inviteUserMail } from "../mail/mail.service";
 const createUser = async (req: IUser): Promise<any> => {
   const User = new Users({
     _id: crypto
@@ -23,8 +23,8 @@ const createUser = async (req: IUser): Promise<any> => {
       .digest("hex")
   });
   try {
-    let newUser = await User.save();
-    mailSenderService(newUser.email, newUser.mailConfirm);
+    const newUser = await User.save();
+    emailTokenMail(newUser.email, newUser.mailConfirm);
     return { status: true, data: newUser };
   } catch (error) {
     return { status: false, message: error };
@@ -108,14 +108,14 @@ const getMe = async (userId: string): Promise<any> => {
 };
 const inviteUser = async (inviteEmail: string, accountId: string): Promise<any> => {
   try {
-    const isMember = await Users.countDocuments({ email: inviteEmail });
     const mainUser = await Users.findById(accountId);
     const inviteUserId = crypto
       .createHash("md5")
       .update(`${inviteEmail}-${accountId}`)
       .digest("hex");
-    const isAlreadyInvited = await Invites.countDocuments({ email: inviteEmail, _id: inviteUserId });
+    const isAlreadyInvited = await Invites.countDocuments({ _id: inviteUserId });
     if (isAlreadyInvited) return { status: false, message: "ALREADY_INVITED" };
+    const isMember = await Users.countDocuments({ email: inviteEmail });
     if (!isMember) {
       const inviteUser = new Invites({
         _id: inviteUserId,
@@ -127,16 +127,16 @@ const inviteUser = async (inviteEmail: string, accountId: string): Promise<any> 
       const newInvites = await inviteUser.save();
       return { status: true, isMember: false, data: { email: newInvites.email } };
     } else {
-      const companyFakeId = "company-fakeId";
       const inviteUsers = new Invites({
         _id: inviteUserId,
         email: inviteEmail,
-        accountId: companyFakeId,
+        accountId: mainUser.defaultAccount,
         inviteHash: crypto.randomBytes(32).toString("hex"),
         state: 1
       });
-      await Users.findOneAndUpdate({ email: inviteEmail }, { $push: { accounts: companyFakeId }, $set: { defaultAccount: companyFakeId } });
+      const u = await Users.findOneAndUpdate({ email: inviteEmail }, { $push: { accounts: mainUser.defaultAccount }, $set: { defaultAccount: mainUser.defaultAccount } });
       await inviteUsers.save();
+      inviteUserMail(u.email);
       return { status: true, isMember: true };
     }
   } catch (error) {
@@ -149,7 +149,6 @@ const createInvitedUser = async (inviteHash: string, userId: string, req: IUser)
     if (!mainUser) return { status: false, message: "WRONG_USER_ID" };
     const InvitedUser = await Invites.findOneAndUpdate({ inviteHash }, { $set: { state: 1 } }, { new: true });
     if (!InvitedUser) return { status: false, message: "WRONG_HASH" };
-    const companyFakeId = "company-fakeId";
     const User = new Users({
       _id: crypto
         .createHash("md5")
@@ -157,32 +156,22 @@ const createInvitedUser = async (inviteHash: string, userId: string, req: IUser)
         .digest("hex"),
       firstName: req.firstName,
       lastName: req.lastName,
-      defaultAccount: companyFakeId,
+      defaultAccount: InvitedUser.accountId,
       email: InvitedUser.email,
       mailConfirm: crypto.randomBytes(32).toString("hex"),
       state: 1,
-      accounts: [companyFakeId],
+      accounts: [InvitedUser.accountId],
       password: crypto
         .createHmac("sha256", config.passwordSecretKey)
         .update(req.password)
         .digest("hex")
     });
     const newInvitedUser = await User.save();
-    await Invites.findByIdAndUpdate(InvitedUser._id, { accountId: newInvitedUser.defaultAccount });
     const token = jwt.sign({ id: newInvitedUser._id }, config.jwtSecretKey);
     return { status: true, data: { token, user: { ...newInvitedUser["_doc"] } } };
   } catch (error) {
     return { status: false, message: error };
   }
 };
-const getUserAccounts = async (userId: string): Promise<any> => {
-  try {
-    const u = await Users.findById(userId)
-      .select("_id")
-      .populate("accounts", "firstName lastName email");
-    return { status: true, data: { u } };
-  } catch (error) {
-    return { status: false, message: error };
-  }
-};
-export default { createUser, loginUser, getUser, updateMe, updateUser, mailConfirm, getMe, inviteUser, createInvitedUser, getUserAccounts };
+
+export default { createUser, loginUser, getUser, updateMe, updateUser, mailConfirm, getMe, inviteUser, createInvitedUser };

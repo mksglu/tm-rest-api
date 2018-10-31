@@ -81,13 +81,5 @@ router.post("/users", isUserAuthenticated, (req: IAuthMiddleware, res: Response)
     return res.status(201).send(response);
   });
 });
-router.get("/users", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
-  const {
-    userId: { id }
-  } = req;
-  userService.getUserAccounts(id).then(response => {
-    if (!response.status) return res.status(400).send(response);
-    return res.status(200).send(response);
-  });
-});
+
 export default router;

@@ -1,9 +1,13 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 export default {
-  connectionStr: process.env.MONGODB_STR,
+  connectionStr: {
+    dev: process.env.MONGODB_STR_DEV,
+    prod: process.env.MONGODB_STR_PROD
+  },
   jwtSecretKey: process.env.JWT_ENCRYPTION,
   jwtExpiration: process.env.JWT_EXPIRATION,
+  NODE_ENV: process.env.NODE_ENV,
   port: process.env.PORT,
   passwordSecretKey: process.env.SECRET_KEY,
   email: {

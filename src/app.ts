@@ -22,10 +22,13 @@ class App {
   }
 
   private mongoSetup(): void {
-    mongoose.connect(
-      config.connectionStr,
-      { useNewUrlParser: true }
-    );
+    mongoose
+      .connect(
+        config.NODE_ENV === "dev" ? config.connectionStr.dev : config.connectionStr.prod,
+        { useNewUrlParser: true }
+      )
+      .then(() => console.log("MongoDB Connected"))
+      .catch(err => console.log(err));
     mongoose.set("useCreateIndex", true);
     mongoose.set("useFindAndModify", false);
   }

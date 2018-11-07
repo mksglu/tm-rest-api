@@ -27,6 +27,7 @@ class App {
       { useNewUrlParser: true }
     );
     mongoose.set("useCreateIndex", true);
+    mongoose.set("useFindAndModify", false);
   }
 }
 

@@ -4,13 +4,24 @@ import { isUserAuthenticated } from "../../middleware";
 import userService from "./users.service";
 const router = Router();
 router.post("/sign-up", (req: Request, res: Response) => {
-  userService.create(req.body).then(response => {
-    if (!response.status) return res.status(400).send(response);
-    return res.status(201).send(response);
-  });
+  if (req.query.invite && req.query.userId) {
+    const {
+      query: { invite },
+      query: { userId }
+    } = req;
+    userService.createInvitedUser(invite, userId, req.body).then(response => {
+      if (!response.status) return res.status(400).send(response);
+      return res.status(201).send(response);
+    });
+  } else {
+    userService.createUser(req.body).then(response => {
+      if (!response.status) return res.status(400).send(response);
+      return res.status(201).send(response);
+    });
+  }
 });
 router.post("/sign-in", (req: Request, res: Response) => {
-  userService.login(req.body).then(response => {
+  userService.loginUser(req.body).then(response => {
     if (!response.status) return res.status(400).send(response);
     return res.status(201).send(response);
   });
@@ -60,4 +71,15 @@ router.get("/me", (req: Request, res: Response) => {
     return res.status(200).send(response);
   });
 });
+router.post("/users", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
+  const {
+    body: { inviteEmail },
+    userId: { id }
+  } = req;
+  userService.inviteUser(inviteEmail, id).then(response => {
+    if (!response.status) return res.status(400).send(response);
+    return res.status(201).send(response);
+  });
+});
+
 export default router;

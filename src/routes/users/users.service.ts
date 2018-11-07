@@ -2,8 +2,8 @@ import * as crypto from "crypto";
 import { IUser } from "interfaces";
 import * as jwt from "jsonwebtoken";
 import config from "../../config";
-import { Users } from "../../models";
-import mailSenderService from "../mail/mail.service";
+import { Invites, Users } from "../../models";
+import { emailTokenMail, inviteUserMail } from "../mail/mail.service";
 const createUser = async (req: IUser): Promise<any> => {
   const User = new Users({
     _id: crypto
@@ -16,14 +16,15 @@ const createUser = async (req: IUser): Promise<any> => {
     email: req.email,
     mailConfirm: crypto.randomBytes(32).toString("hex"),
     state: 0,
+    accounts: [],
     password: crypto
       .createHmac("sha256", config.passwordSecretKey)
       .update(req.password)
       .digest("hex")
   });
   try {
-    let newUser = await User.save();
-    mailSenderService(newUser.email, newUser.mailConfirm);
+    const newUser = await User.save();
+    emailTokenMail(newUser.email, newUser.mailConfirm);
     return { status: true, data: newUser };
   } catch (error) {
     return { status: false, message: error };
@@ -105,4 +106,72 @@ const getMe = async (userId: string): Promise<any> => {
     return { status: false, message: error };
   }
 };
-export default { create: createUser, login: loginUser, getUser, updateMe, updateUser, mailConfirm, getMe };
+const inviteUser = async (inviteEmail: string, accountId: string): Promise<any> => {
+  try {
+    const mainUser = await Users.findById(accountId);
+    const inviteUserId = crypto
+      .createHash("md5")
+      .update(`${inviteEmail}-${accountId}`)
+      .digest("hex");
+    const isAlreadyInvited = await Invites.countDocuments({ _id: inviteUserId });
+    if (isAlreadyInvited) return { status: false, message: "ALREADY_INVITED" };
+    const isMember = await Users.countDocuments({ email: inviteEmail });
+    if (!isMember) {
+      const inviteUser = new Invites({
+        _id: inviteUserId,
+        accountId: mainUser.defaultAccount,
+        inviteHash: crypto.randomBytes(32).toString("hex"),
+        email: inviteEmail,
+        state: 2
+      });
+      const newInvites = await inviteUser.save();
+      return { status: true, isMember: false, data: { email: newInvites.email } };
+    } else {
+      const inviteUsers = new Invites({
+        _id: inviteUserId,
+        email: inviteEmail,
+        accountId: mainUser.defaultAccount,
+        inviteHash: crypto.randomBytes(32).toString("hex"),
+        state: 1
+      });
+      const u = await Users.findOneAndUpdate({ email: inviteEmail }, { $push: { accounts: mainUser.defaultAccount }, $set: { defaultAccount: mainUser.defaultAccount } });
+      await inviteUsers.save();
+      inviteUserMail(u.email);
+      return { status: true, isMember: true };
+    }
+  } catch (error) {
+    return { status: false, message: error };
+  }
+};
+const createInvitedUser = async (inviteHash: string, userId: string, req: IUser): Promise<any> => {
+  try {
+    const mainUser = await Users.findById(userId);
+    if (!mainUser) return { status: false, message: "WRONG_USER_ID" };
+    const InvitedUser = await Invites.findOneAndUpdate({ inviteHash }, { $set: { state: 1 } }, { new: true });
+    if (!InvitedUser) return { status: false, message: "WRONG_HASH" };
+    const User = new Users({
+      _id: crypto
+        .createHash("md5")
+        .update(`${req.firstName}-${req.lastName}-${req.firstName}-${InvitedUser.email}`)
+        .digest("hex"),
+      firstName: req.firstName,
+      lastName: req.lastName,
+      defaultAccount: InvitedUser.accountId,
+      email: InvitedUser.email,
+      mailConfirm: crypto.randomBytes(32).toString("hex"),
+      state: 1,
+      accounts: [InvitedUser.accountId],
+      password: crypto
+        .createHmac("sha256", config.passwordSecretKey)
+        .update(req.password)
+        .digest("hex")
+    });
+    const newInvitedUser = await User.save();
+    const token = jwt.sign({ id: newInvitedUser._id }, config.jwtSecretKey);
+    return { status: true, data: { token, user: { ...newInvitedUser["_doc"] } } };
+  } catch (error) {
+    return { status: false, message: error };
+  }
+};
+
+export default { createUser, loginUser, getUser, updateMe, updateUser, mailConfirm, getMe, inviteUser, createInvitedUser };

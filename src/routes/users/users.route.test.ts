@@ -2,14 +2,14 @@ process.env.NODE_ENV = "test";
 import * as mongoose from "mongoose";
 import * as request from "supertest";
 import server from "../../app";
-import { INVITE_EMAIL, mockUser } from "../../utils/test.utils";
+import { INVITE_EMAIL, userRouteMockUser } from "../../utils/test.utils";
 describe("Users Route", () => {
   let token, id, mailConfirm: string;
   describe("/POST users", () => {
     it("it should add a new user", done => {
       request(server)
         .post("/sign-up")
-        .send(mockUser)
+        .send(userRouteMockUser)
         .end((err: any, res: any) => {
           expect(res.status).toBe(201);
           id = res.body.data._id;
@@ -17,13 +17,22 @@ describe("Users Route", () => {
           done();
         });
     });
-    it("it should login with correct password ", done => {
+    it("it should login with correct password", done => {
       request(server)
         .post("/sign-in")
-        .send({ email: mockUser.email, password: mockUser.password })
+        .send({ email: userRouteMockUser.email, password: userRouteMockUser.password })
         .end((err: any, res: any) => {
           expect(res.status).toBe(201);
           token = res.body.data.token;
+          done();
+        });
+    });
+    it("it should return bad request response if wrong password when login user", done => {
+      request(server)
+        .post("/sign-in")
+        .send({ email: userRouteMockUser.email, password: "fake-password" })
+        .end((err: any, res: any) => {
+          expect(res.status).toBe(400);
           done();
         });
     });
@@ -173,7 +182,12 @@ describe("Users Route", () => {
     });
   });
   afterAll(done => {
-    mongoose.connection.dropDatabase();
-    done();
+    setTimeout(() => {
+      mongoose.connection.db.dropDatabase(() => {
+        mongoose.connection.close(() => {
+          done();
+        });
+      });
+    }, 2000);
   });
 });

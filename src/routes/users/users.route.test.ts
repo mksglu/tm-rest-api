@@ -4,7 +4,7 @@ import * as request from "supertest";
 import server from "../../app";
 import { INVITE_EMAIL, mockUser } from "../../utils/test.utils";
 describe("Users Route", () => {
-  let token, id: string;
+  let token, id, mailConfirm: string;
   describe("/POST users", () => {
     it("it should add a new user", done => {
       request(server)
@@ -13,6 +13,7 @@ describe("Users Route", () => {
         .end((err: any, res: any) => {
           expect(res.status).toBe(201);
           id = res.body.data._id;
+          mailConfirm = res.body.data.mailConfirm;
           done();
         });
     });
@@ -26,13 +27,32 @@ describe("Users Route", () => {
           done();
         });
     });
-    it("should be invite user", done => {
+    it("it should be invite user", done => {
       request(server)
         .post("/users")
         .set({ Authorization: `Bearer ${token}` })
         .send({ inviteEmail: INVITE_EMAIL })
         .end((err: any, res: any) => {
           expect(res.status).toBe(201);
+          done();
+        });
+    });
+    it("it should return unauthorized response if token is null when invite user", done => {
+      request(server)
+        .post("/users")
+        .send({ inviteEmail: INVITE_EMAIL })
+        .end((err: any, res: any) => {
+          expect(res.status).toBe(401);
+          done();
+        });
+    });
+    it("it should return unauthorized response if token is wrong when invite user", done => {
+      request(server)
+        .post("/users")
+        .set({ Authorization: "Bearer fake-id" })
+        .send({ inviteEmail: INVITE_EMAIL })
+        .end((err: any, res: any) => {
+          expect(res.status).toBe(401);
           done();
         });
     });
@@ -44,6 +64,110 @@ describe("Users Route", () => {
         .set({ Authorization: `Bearer ${token}` })
         .end((err: any, res: any) => {
           expect(res.status).toBe(200);
+          done();
+        });
+    });
+    it("it should return unauthorized response if token is null when return a user by the given id", done => {
+      request(server)
+        .get(`/users/${id}`)
+        .end((err: any, res: any) => {
+          expect(res.status).toBe(401);
+          done();
+        });
+    });
+    it("it should return unauthorized response if token is wrong when return a user by the given id", done => {
+      request(server)
+        .get(`/users/${id}`)
+        .set({ Authorization: "Bearer fake-token" })
+        .end((err: any, res: any) => {
+          expect(res.status).toBe(401);
+          done();
+        });
+    });
+  });
+  describe("/PUT users", () => {
+    it("it should send email to invite user", done => {
+      request(server)
+        .put(`/me/mail-confirm/${mailConfirm}`)
+        .end((err: any, res: any) => {
+          expect(res.status).toBe(201);
+          done();
+        });
+    });
+    it("it should return unauthorized response if token is null when send email to invite user", done => {
+      request(server)
+        .put(`/users/${id}`)
+        .send({ firstName: "Burak" })
+        .end((err: any, res: any) => {
+          expect(res.status).toBe(401);
+          done();
+        });
+    });
+    it("it should return unauthorized response if token is wrong when send email to invite user", done => {
+      request(server)
+        .put(`/users/${id}`)
+        .set({ Authorization: "Bearer fake-token" })
+        .send({ firstName: "Burak" })
+        .end((err: any, res: any) => {
+          expect(res.status).toBe(401);
+          done();
+        });
+    });
+    it("it should be update user by the given id", done => {
+      request(server)
+        .put(`/users/${id}`)
+        .set({ Authorization: `Bearer ${token}` })
+        .send({ firstName: "Burak" })
+        .end((err: any, res: any) => {
+          expect(res.status).toBe(201);
+          done();
+        });
+    });
+    it("it should return unauthorized response if token is wrong when update user by the given id", done => {
+      request(server)
+        .put(`/users/${id}`)
+        .set({ Authorization: "Bearer fake-token" })
+        .send({ firstName: "Burak" })
+        .end((err: any, res: any) => {
+          expect(res.status).toBe(401);
+          done();
+        });
+    });
+    it("it should return unauthorized response if token is null when update user by the given id", done => {
+      request(server)
+        .put(`/users/${id}`)
+        .send({ firstName: "Burak" })
+        .end((err: any, res: any) => {
+          expect(res.status).toBe(401);
+          done();
+        });
+    });
+    it("it should be update user by the token", done => {
+      request(server)
+        .put("/me/")
+        .set({ Authorization: `Bearer ${token}` })
+        .send({ firstName: "Hakan" })
+        .end((err: any, res: any) => {
+          expect(res.status).toBe(201);
+          done();
+        });
+    });
+    it("it should return unauthorized response if token is null when update user by the token", done => {
+      request(server)
+        .put("/me/")
+        .send({ firstName: "Hakan" })
+        .end((err: any, res: any) => {
+          expect(res.status).toBe(401);
+          done();
+        });
+    });
+    it("it should return unauthorized response if token is null when update user by the token", done => {
+      request(server)
+        .put("/me/")
+        .set({ Authorization: "Bearer fake-id" })
+        .send({ firstName: "Hakan" })
+        .end((err: any, res: any) => {
+          expect(res.status).toBe(401);
           done();
         });
     });

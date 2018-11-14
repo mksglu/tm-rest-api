@@ -24,7 +24,7 @@ const createUser = async (req: IUser): Promise<any> => {
   });
   try {
     const newUser = await User.save();
-    emailTokenMail(newUser.email, newUser.mailConfirm);
+    if (process.env.NODE_ENV !== "test") emailTokenMail(newUser.email, newUser.mailConfirm);
     return { status: true, data: newUser };
   } catch (error) {
     return { status: false, message: error };
@@ -136,7 +136,7 @@ const inviteUser = async (inviteEmail: string, accountId: string): Promise<any> 
       });
       const u = await Users.findOneAndUpdate({ email: inviteEmail }, { $push: { accounts: mainUser.defaultAccount }, $set: { defaultAccount: mainUser.defaultAccount } });
       await inviteUsers.save();
-      inviteUserMail(u.email);
+      if (process.env.NODE_ENV !== "test") inviteUserMail(u.email);
       return { status: true, isMember: true };
     }
   } catch (error) {

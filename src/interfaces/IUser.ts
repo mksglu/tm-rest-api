@@ -10,4 +10,5 @@ export default interface IUser extends Document {
   mailConfirm: string;
   state: number;
   _id: string;
+  accountName: string;
 }

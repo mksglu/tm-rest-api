@@ -9,7 +9,18 @@ router.get("/accounts/:paramId", isUserAuthenticated, (req: IAuthMiddleware, res
     params: { paramId }
   } = req;
   accountsService.getAccount(id, paramId).then(response => {
-    return response;
+    if (!response.status) return res.status(400).send(response);
+    return res.status(201).send(response);
+  });
+});
+router.put("/accounts/:paramId", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
+  const {
+    userId: { id },
+    params: { paramId }
+  } = req;
+  accountsService.updateAccount(id, paramId, req.body).then(response => {
+    if (!response.status) return res.status(400).send(response);
+    return res.status(201).send(response);
   });
 });
 export default router;

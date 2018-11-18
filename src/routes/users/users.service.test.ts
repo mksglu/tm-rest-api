@@ -1,7 +1,7 @@
 process.env.NODE_ENV = "test";
 import * as mongoose from "mongoose";
 import config from "../../config";
-import { ALREADY_MEMBER_EMAIL, INVITE_EMAIL, userServiceMockUser } from "../../utils/test.utils";
+import { ALREADY_MEMBER_EMAIL, INVITE_EMAIL, mockUser } from "../../utils/test.utils";
 import userService from "./users.service";
 describe("Users Service", () => {
   let _mailConfirm: string;
@@ -12,28 +12,28 @@ describe("Users Service", () => {
       done
     );
   });
+  const user = { ...mockUser, email: "user.service@tdsmaker.com" };
   describe("/POST users", () => {
     it("it should add a new user", done => {
-      userService.createUser(userServiceMockUser).then(res => {
+      userService.createUser(user).then(res => {
         const { _id, accounts, firstName, lastName, defaultAccount, email, mailConfirm, state, password } = res.data;
         userToken.id = res.data._id;
         _mailConfirm = res.data.mailConfirm;
         expect(res.status).toBe(true);
-        expect(_id).toEqual("fc8c13c806bc5d2359121547714e438d");
-        expect(firstName).toEqual("Duygu");
-        expect(lastName).toEqual("Aksoy");
-        expect(defaultAccount).toEqual(null);
-        expect(email).toEqual("duygu@tdsmaker.com");
+        expect(_id).toEqual("b5d86dc400f0caec2362354bfb29775b");
+        expect(firstName).toEqual("Mert");
+        expect(lastName).toEqual("Koseoglu");
+        expect(defaultAccount).toEqual("2dea0389acd42e4fd5e0e1393fb99607");
+        expect(email).toEqual("user.service@tdsmaker.com");
         expect(mailConfirm).toBeDefined();
         expect(state).toEqual(0);
-        expect(password).toEqual("44e650a9fe927d8a144060031e239cbb6334b93a6771579d95e58659a8dcf54e");
+        expect(password).toBeUndefined();
         expect(accounts).toEqual(expect.arrayContaining([]));
         done();
       });
     });
     it("it should be login", done => {
-      const login: any = { email: userServiceMockUser.email, password: userServiceMockUser.password };
-      userService.loginUser(login).then(res => {
+      userService.loginUser(user).then(res => {
         expect(res.status).toBe(true);
         expect(res.data.token).toBeDefined();
         done();
@@ -47,7 +47,7 @@ describe("Users Service", () => {
       });
     });
     it("it should return is member true when already member user invitation", done => {
-      userService.createUser({ ...userServiceMockUser, email: ALREADY_MEMBER_EMAIL }).then(res => {
+      userService.createUser({ ...user, email: ALREADY_MEMBER_EMAIL }).then(res => {
         userService.inviteUser(res.data.email, userToken.id).then(res => {
           expect(res.status).toBe(true);
           expect(res.isMember).toBe(true);
@@ -61,8 +61,8 @@ describe("Users Service", () => {
       userService.getUser(userToken.id, userToken.id).then(res => {
         const { _id, email, password } = res.data;
         expect(res.status).toBe(true);
-        expect(_id).toEqual("fc8c13c806bc5d2359121547714e438d");
-        expect(email).toEqual("duygu@tdsmaker.com");
+        expect(_id).toEqual("b5d86dc400f0caec2362354bfb29775b");
+        expect(email).toEqual("user.service@tdsmaker.com");
         expect(password).toBeUndefined();
         done();
       });
@@ -80,10 +80,10 @@ describe("Users Service", () => {
       });
     });
     it("it should be update user by the given id", done => {
-      const updatedName: any = { firstName: "Mert" };
+      const updatedName: any = { firstName: "Duygu" };
       userService.updateUser(userToken.id, userToken.id, updatedName).then(res => {
         expect(res.status).toBe(true);
-        expect(res.data.firstName).toEqual("Mert");
+        expect(res.data.firstName).toEqual("Duygu");
         done();
       });
     });

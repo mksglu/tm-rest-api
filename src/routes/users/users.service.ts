@@ -9,7 +9,7 @@ const createUser = async (req: IUser): Promise<any> => {
   const User = new Users({
     _id: crypto
       .createHash("md5")
-      .update(`${req.firstName}-${req.lastName}-${req.firstName}-${req.email}`)
+      .update(`${req.firstName}-${req.lastName}-${req.email}`)
       .digest("hex"),
     firstName: req.firstName,
     lastName: req.lastName,

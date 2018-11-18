@@ -2,14 +2,22 @@ process.env.NODE_ENV = "test";
 import * as mongoose from "mongoose";
 import * as request from "supertest";
 import server from "../../app";
-import { INVITE_EMAIL, userRouteMockUser } from "../../utils/test.utils";
+import config from "../../config";
+import { INVITE_EMAIL, mockUser } from "../../utils/test.utils";
 describe("Users Route", () => {
+  beforeAll(done => {
+    mongoose.connect(
+      config.connectionStr.dev,
+      done
+    );
+  });
   let token, id, mailConfirm: string;
+  const user = { ...mockUser, email: "users.route@tdsmaker.com" };
   describe("/POST users", () => {
     it("it should add a new user", done => {
       request(server)
         .post("/sign-up")
-        .send(userRouteMockUser)
+        .send(user)
         .end((err: any, res: any) => {
           expect(res.status).toBe(201);
           id = res.body.data._id;
@@ -20,7 +28,7 @@ describe("Users Route", () => {
     it("it should login with correct password", done => {
       request(server)
         .post("/sign-in")
-        .send({ email: userRouteMockUser.email, password: userRouteMockUser.password })
+        .send({ email: user.email, password: user.password })
         .end((err: any, res: any) => {
           expect(res.status).toBe(201);
           token = res.body.data.token;
@@ -30,7 +38,7 @@ describe("Users Route", () => {
     it("it should return bad request response if wrong password when login user", done => {
       request(server)
         .post("/sign-in")
-        .send({ email: userRouteMockUser.email, password: "fake-password" })
+        .send({ email: user.email, password: "fake-password" })
         .end((err: any, res: any) => {
           expect(res.status).toBe(400);
           done();

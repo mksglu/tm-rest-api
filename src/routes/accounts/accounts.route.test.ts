@@ -45,12 +45,10 @@ describe("Accounts Route", () => {
     });
   });
   afterAll(done => {
-    setTimeout(() => {
-      mongoose.connection.db.dropDatabase(() => {
-        mongoose.connection.close(() => {
-          done();
-        });
+    mongoose.connection.dropDatabase(() => {
+      mongoose.connection.close(() => {
+        done();
       });
-    }, 2000);
+    });
   });
 });

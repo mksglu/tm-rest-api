@@ -2,13 +2,14 @@ import * as crypto from "crypto";
 import { IUser } from "interfaces";
 import * as jwt from "jsonwebtoken";
 import config from "../../config";
-import { Invites, Users } from "../../models";
+import { Accounts, Invites, Users } from "../../models";
 import { emailTokenMail, inviteUserMail } from "../mail/mail.service";
+
 const createUser = async (req: IUser): Promise<any> => {
   const User = new Users({
     _id: crypto
       .createHash("md5")
-      .update(`${req.firstName}-${req.lastName}-${req.firstName}-${req.email}`)
+      .update(`${req.firstName}-${req.lastName}-${req.email}`)
       .digest("hex"),
     firstName: req.firstName,
     lastName: req.lastName,
@@ -22,10 +23,20 @@ const createUser = async (req: IUser): Promise<any> => {
       .update(req.password)
       .digest("hex")
   });
+  const Account = new Accounts({
+    _id: crypto
+      .createHash("md5")
+      .update(`${req.accountName}-${req.email}`)
+      .digest("hex"),
+    name: req.accountName,
+    users: [User._id]
+  });
   try {
     const newUser = await User.save();
+    const newAccount = await Account.save();
+    const updateDefaultAccount = await Users.findOneAndUpdate({ email: newUser.email }, { $set: { defaultAccount: newAccount._id }, $push: { accounts: newAccount._id } }, { new: true });
     if (process.env.NODE_ENV !== "test") emailTokenMail(newUser.email, newUser.mailConfirm);
-    return { status: true, data: newUser };
+    return { status: true, data: updateDefaultAccount };
   } catch (error) {
     return { status: false, message: error };
   }

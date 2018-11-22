@@ -5,7 +5,7 @@ import accountsService from "./accounts.service";
 const router = Router();
 router.get("/accounts", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
   const {
-    userId: { accountId }
+    token: { accountId }
   } = req;
   accountsService.getAccount(accountId).then(response => {
     if (!response.status) return res.status(400).send(response);
@@ -14,7 +14,7 @@ router.get("/accounts", isUserAuthenticated, (req: IAuthMiddleware, res: Respons
 });
 router.put("/accounts", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
   const {
-    userId: { accountId }
+    token: { accountId }
   } = req;
   accountsService.updateAccount(accountId, req.body).then(response => {
     if (!response.status) return res.status(400).send(response);

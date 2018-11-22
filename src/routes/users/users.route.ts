@@ -28,7 +28,7 @@ router.post("/sign-in", (req: Request, res: Response) => {
 });
 router.get("/users/:paramId", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
   const {
-    userId: { id },
+    token: { id },
     params: { paramId }
   } = req;
   userService.getUser(id, paramId).then(response => {
@@ -38,7 +38,7 @@ router.get("/users/:paramId", isUserAuthenticated, (req: IAuthMiddleware, res: R
 });
 router.put("/me", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
   const {
-    userId: { id }
+    token: { id }
   } = req;
   userService.updateMe(id, req.body).then(response => {
     if (!response.status) return res.status(400).send(response);
@@ -47,7 +47,7 @@ router.put("/me", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => 
 });
 router.put("/users/:paramId", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
   const {
-    userId: { id },
+    token: { id },
     params: { paramId }
   } = req;
   userService.updateUser(id, paramId, req.body).then(response => {
@@ -74,7 +74,7 @@ router.get("/me", (req: Request, res: Response) => {
 router.post("/users", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
   const {
     body: { inviteEmail },
-    userId: { id }
+    token: { id }
   } = req;
   userService.inviteUser(inviteEmail, id).then(response => {
     if (!response.status) return res.status(400).send(response);

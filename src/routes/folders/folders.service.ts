@@ -23,7 +23,7 @@ const createFolder = async (folderType: string, accountId: string, req: IFolders
 const getFolder = async (folderType: string, accountId: string): Promise<any> => {
   try {
     const getFolder = await Folders.find({ folderType, accountId });
-    return { status: true, data: [...getFolder] };
+    return { status: true, data: getFolder };
   } catch (error) {
     return { status: false, message: error };
   }

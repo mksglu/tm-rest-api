@@ -24,4 +24,5 @@ router.put("/folder/:folderId", isUserAuthenticated, async (req: IAuthMiddleware
   if (!updateFolder.status) return res.status(400).send(updateFolder);
   return res.status(200).send(updateFolder);
 });
+
 export default router;

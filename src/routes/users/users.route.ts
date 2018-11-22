@@ -42,7 +42,7 @@ router.put("/me", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => 
   } = req;
   userService.updateMe(id, req.body).then(response => {
     if (!response.status) return res.status(400).send(response);
-    return res.status(201).send(response);
+    return res.status(200).send(response);
   });
 });
 router.put("/users/:paramId", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
@@ -52,7 +52,7 @@ router.put("/users/:paramId", isUserAuthenticated, (req: IAuthMiddleware, res: R
   } = req;
   userService.updateUser(id, paramId, req.body).then(response => {
     if (!response.status) return res.status(400).send(response);
-    return res.status(201).send(response);
+    return res.status(200).send(response);
   });
 });
 router.put("/me/mail-confirm/:paramKey", (req: Request, res: Response) => {
@@ -61,7 +61,7 @@ router.put("/me/mail-confirm/:paramKey", (req: Request, res: Response) => {
   } = req;
   userService.mailConfirm(paramKey).then(response => {
     if (!response.status) return res.status(400).send(response);
-    return res.status(201).send(response);
+    return res.status(200).send(response);
   });
 });
 router.get("/me", (req: Request, res: Response) => {

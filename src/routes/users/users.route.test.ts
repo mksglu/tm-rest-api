@@ -107,7 +107,7 @@ describe("Users Route", () => {
       request(server)
         .put(`/me/mail-confirm/${mailConfirm}`)
         .end((err: any, res: any) => {
-          expect(res.status).toBe(201);
+          expect(res.status).toBe(200);
           done();
         });
     });
@@ -136,7 +136,7 @@ describe("Users Route", () => {
         .set({ Authorization: `Bearer ${token}` })
         .send({ firstName: "Burak" })
         .end((err: any, res: any) => {
-          expect(res.status).toBe(201);
+          expect(res.status).toBe(200);
           done();
         });
     });
@@ -165,7 +165,7 @@ describe("Users Route", () => {
         .set({ Authorization: `Bearer ${token}` })
         .send({ firstName: "Hakan" })
         .end((err: any, res: any) => {
-          expect(res.status).toBe(201);
+          expect(res.status).toBe(200);
           done();
         });
     });

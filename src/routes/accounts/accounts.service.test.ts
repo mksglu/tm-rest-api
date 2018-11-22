@@ -20,7 +20,7 @@ describe("Accounts Service", () => {
   });
   describe("/GET accounts", () => {
     it("it should get a account response get by account id", async () => {
-      const account = await accountsService.getAccount(token.id, u.data.defaultAccount);
+      const account = await accountsService.getAccount(token.accountId);
       expect(account.status).toBe(true);
       expect(account.data.name).toEqual("Polisan");
       expect(account.data._id).toEqual(u.data.defaultAccount);
@@ -29,7 +29,7 @@ describe("Accounts Service", () => {
   });
   describe("/PUT accounts", () => {
     it("it should update a account get by account id", async () => {
-      const account = await accountsService.updateAccount(token.id, u.data.defaultAccount, <any>{ name: "updatedName" });
+      const account = await accountsService.updateAccount(token.accountId, <any>{ name: "updatedName" });
       expect(account.status).toBe(true);
       expect(account.data.name).toEqual("updatedName");
       expect(account.data._id).toEqual(u.data.defaultAccount);

@@ -5,7 +5,7 @@ const isValidFolderType = (req: IAuthMiddleware, res: Response, next: NextFuncti
   if (req.params.folderType === "template" || req.params.folderType === "datasheet") {
     next();
   } else {
-    return res.status(401).send({ status: false, message: "INVALID_TYPE" });
+    return res.status(400).send({ status: false, message: "INVALID_TYPE" });
   }
 };
 

@@ -14,33 +14,32 @@ describe("Accounts Route", () => {
     );
   });
   const user = { ...mockUser, email: "accounts.route@tdsmaker.com" };
-  let u, login: any;
+  let login: any;
   it("authentication dependency", async () => {
-    u = await usersService.createUser(user);
+    await usersService.createUser(user);
     login = await usersService.loginUser(user);
   });
   describe("/GET accounts", () => {
     it("it should get a account response get by account id", async () => {
       const res = await request(server)
-        .get(`/accounts/${u.data.defaultAccount}`)
+        .get(`/accounts`)
         .set({ Authorization: `Bearer ${login.data.token}` });
-      expect(res.status).toBe(201);
+      expect(res.status).toBe(200);
     });
-    it("it should return unauthorized response if token is wrong when account details get by account id", async done => {
+    it("it should return unauthorized response if token is wrong when account details get by account id", async () => {
       const res = await request(server)
-        .get(`/accounts/${u.data.defaultAccount}`)
+        .get(`/accounts`)
         .set({ Authorization: `Bearer fake-token` });
       expect(res.status).toBe(401);
-      done();
     });
   });
   describe("/PUT accounts", () => {
     it("it should update a account get by account id", async () => {
       const res = await request(server)
-        .put(`/accounts/${u.data.defaultAccount}`)
+        .put(`/accounts`)
         .set({ Authorization: `Bearer ${login.data.token}` })
         .send({ name: "Dintek" });
-      expect(res.status).toBe(201);
+      expect(res.status).toBe(200);
       expect(res.body.data.name).toEqual("Dintek");
     });
   });

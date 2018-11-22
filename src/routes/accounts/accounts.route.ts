@@ -9,7 +9,7 @@ router.get("/accounts", isUserAuthenticated, (req: IAuthMiddleware, res: Respons
   } = req;
   accountsService.getAccount(accountId).then(response => {
     if (!response.status) return res.status(400).send(response);
-    return res.status(201).send(response);
+    return res.status(200).send(response);
   });
 });
 router.put("/accounts", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
@@ -18,7 +18,7 @@ router.put("/accounts", isUserAuthenticated, (req: IAuthMiddleware, res: Respons
   } = req;
   accountsService.updateAccount(accountId, req.body).then(response => {
     if (!response.status) return res.status(400).send(response);
-    return res.status(201).send(response);
+    return res.status(200).send(response);
   });
 });
 export default router;

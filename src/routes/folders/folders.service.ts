@@ -15,7 +15,7 @@ const createFolder = async (folderType: string, accountId: string, req: IFolders
   });
   try {
     const newFolder = await Folder.save();
-    return { status: true, data: [newFolder] };
+    return { status: true, data: { ...newFolder["_doc"] } };
   } catch (error) {
     return { status: false, message: error };
   }
@@ -31,7 +31,7 @@ const getFolder = async (folderType: string, accountId: string): Promise<any> =>
 const deleteFolder = async (folderId: string): Promise<any> => {
   try {
     const deleteFolder = await Folders.findByIdAndDelete(folderId);
-    return { status: true, data: [deleteFolder] };
+    return { status: true, data: { ...deleteFolder["_doc"] } };
   } catch (error) {
     return { status: false, message: error };
   }
@@ -39,7 +39,7 @@ const deleteFolder = async (folderId: string): Promise<any> => {
 const updateFolder = async (folderId: string, req: IFolders): Promise<any> => {
   try {
     const updateFolder = await Folders.findByIdAndUpdate(folderId, { $set: { name: req.name, parentId: req.parentId } }, { new: true });
-    return { status: true, data: [updateFolder] };
+    return { status: true, data: { ...updateFolder["_doc"] } };
   } catch (error) {
     return { status: false, message: error };
   }

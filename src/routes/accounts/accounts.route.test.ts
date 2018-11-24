@@ -10,14 +10,16 @@ describe("Accounts Route", () => {
   beforeAll(done => {
     mongoose.connect(
       config.connectionStr.dev,
+      { useNewUrlParser: true },
       done
     );
+    mongoose.set("useCreateIndex", true);
+    mongoose.set("useFindAndModify", false);
   });
-  const user = { ...mockUser, email: "accounts.route@tdsmaker.com" };
   let login: any;
   it("authentication dependency", async () => {
-    await usersService.createUser(user);
-    login = await usersService.loginUser(user);
+    await usersService.createUser(mockUser);
+    login = await usersService.loginUser(mockUser);
   });
   describe("/GET accounts", () => {
     it("it should get a account response get by account id", async () => {

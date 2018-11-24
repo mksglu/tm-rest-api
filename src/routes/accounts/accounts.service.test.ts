@@ -4,18 +4,21 @@ import config from "../../config";
 import { decodeToken, mockUser } from "../../utils/test.utils";
 import usersService from "../users/users.service";
 import accountsService from "./accounts.service";
+
 describe("Accounts Service", () => {
   beforeAll(done => {
     mongoose.connect(
       config.connectionStr.dev,
+      { useNewUrlParser: true },
       done
     );
+    mongoose.set("useCreateIndex", true);
+    mongoose.set("useFindAndModify", false);
   });
-  const user = { ...mockUser, email: "accounts.service@tdsmaker.com" };
   let u, token, login: any;
   it("authentication dependency", async () => {
-    u = await usersService.createUser(user);
-    login = await usersService.loginUser(user);
+    u = await usersService.createUser(mockUser);
+    login = await usersService.loginUser(mockUser);
     token = decodeToken(login.data.token);
   });
   describe("/GET accounts", () => {

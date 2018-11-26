@@ -13,7 +13,7 @@ const isUserAuthenticated = (req: IAuthMiddleware, res: Response, next: NextFunc
     if (err) {
       res.status(401).send({ status: false, message: err });
     } else {
-      req.userId = decoded;
+      req.token = decoded;
       next();
     }
   });

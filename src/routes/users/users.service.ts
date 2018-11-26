@@ -53,7 +53,7 @@ const loginUser = async (req: IUser): Promise<any> => {
         .update(password)
         .digest("hex") === u.password;
     if (!isPasswordValid) return { status: false, message: "INVALID_PASSWORD" };
-    const token = jwt.sign({ id: u._id }, config.jwtSecretKey);
+    const token = jwt.sign({ id: u._id, accountId: u.defaultAccount }, config.jwtSecretKey);
     return { status: true, data: { token } };
   } catch (error) {
     return { status: false, message: error };

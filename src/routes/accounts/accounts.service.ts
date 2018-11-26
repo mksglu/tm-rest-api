@@ -1,19 +1,20 @@
 import { IAcccounts } from "interfaces";
 import { Accounts } from "../../models";
-const getAccount = async (tokenId: string, paramId: string): Promise<any> => {
-  const result = await Accounts.findById(paramId);
-  if (result === null) return { status: false, message: "BAD_REQUEST" };
-  const exists = result.users.some(o => o === tokenId);
-  if (!exists) return { status: false, message: "ACCESS_DENIED" };
-  return { status: true, data: { ...result["_doc"] } };
+const getAccount = async (accoundId: string): Promise<any> => {
+  try {
+    const result = await Accounts.findById(accoundId);
+    return { status: true, data: { ...result["_doc"] } };
+  } catch (error) {
+    return { status: false, message: error };
+  }
 };
-const updateAccount = async (tokenId: string, paramId: string, req: IAcccounts): Promise<any> => {
-  const result = await Accounts.findById(paramId);
-  if (result === null) return { status: false, message: "BAD_REQUEST" };
-  const exists = result.users.some(o => o === tokenId);
-  if (!exists) return { status: false, message: "ACCESS_DENIED" };
-  const u = await Accounts.findByIdAndUpdate(paramId, req, { new: true });
-  return { status: true, data: { ...u["_doc"] } };
+const updateAccount = async (accoundId: string, req: IAcccounts): Promise<any> => {
+  try {
+    const u = await Accounts.findByIdAndUpdate(accoundId, req, { new: true });
+    return { status: true, data: { ...u["_doc"] } };
+  } catch (error) {
+    return { status: false, message: error };
+  }
 };
 
 export default { getAccount, updateAccount };

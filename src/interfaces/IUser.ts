@@ -3,6 +3,8 @@ export default interface IUser extends Document {
   firstName: string;
   lastName: string;
   accounts: string[];
+  role: string;
+  roles: {};
   email: string;
   password: string;
   dateCreated: Date;

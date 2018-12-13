@@ -73,10 +73,10 @@ router.get("/me", (req: Request, res: Response) => {
 });
 router.post("/users", isUserAuthenticated, (req: IAuthMiddleware, res: Response) => {
   const {
-    body: { inviteEmail },
+    body: { inviteEmail, role },
     token: { id }
   } = req;
-  userService.inviteUser(inviteEmail, id).then(response => {
+  userService.inviteUser(inviteEmail, role, id).then(response => {
     if (!response.status) return res.status(400).send(response);
     return res.status(201).send(response);
   });

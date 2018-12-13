@@ -43,7 +43,7 @@ describe("Users Service", () => {
       });
     });
     it("it should return is member false when non-member user invitation", done => {
-      userService.inviteUser(INVITE_EMAIL, userToken.id).then(res => {
+      userService.inviteUser(INVITE_EMAIL, "admin", userToken.id).then(res => {
         expect(res.status).toBe(true);
         expect(res.isMember).toBe(false);
         done();
@@ -51,7 +51,7 @@ describe("Users Service", () => {
     });
     it("it should return is member true when already member user invitation", done => {
       userService.createUser({ ...mockUser, email: ALREADY_MEMBER_EMAIL }).then(res => {
-        userService.inviteUser(res.data.email, userToken.id).then(res => {
+        userService.inviteUser(res.data.email, "admin", userToken.id).then(res => {
           expect(res.status).toBe(true);
           expect(res.isMember).toBe(true);
           done();

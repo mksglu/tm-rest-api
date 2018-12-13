@@ -18,6 +18,7 @@ const createUser = async (req: IUser): Promise<any> => {
     mailConfirm: crypto.randomBytes(32).toString("hex"),
     state: 0,
     accounts: [],
+    roles: {},
     password: crypto
       .createHmac("sha256", config.passwordSecretKey)
       .update(req.password)
@@ -34,7 +35,11 @@ const createUser = async (req: IUser): Promise<any> => {
   try {
     const newUser = await User.save();
     const newAccount = await Account.save();
-    const updateDefaultAccount = await Users.findOneAndUpdate({ email: newUser.email }, { $set: { defaultAccount: newAccount._id }, $push: { accounts: newAccount._id } }, { new: true });
+    const updateDefaultAccount = await Users.findOneAndUpdate(
+      { email: newUser.email },
+      { $set: { defaultAccount: newAccount._id, roles: { [newAccount._id]: "admin" } }, $push: { accounts: newAccount._id } },
+      { new: true }
+    );
     if (process.env.NODE_ENV !== "test") emailTokenMail(newUser.email, newUser.mailConfirm);
     return { status: true, data: updateDefaultAccount };
   } catch (error) {
@@ -53,7 +58,8 @@ const loginUser = async (req: IUser): Promise<any> => {
         .update(password)
         .digest("hex") === u.password;
     if (!isPasswordValid) return { status: false, message: "INVALID_PASSWORD" };
-    const token = jwt.sign({ id: u._id, accountId: u.defaultAccount }, config.jwtSecretKey);
+    const role = u.roles[u.defaultAccount];
+    const token = jwt.sign({ id: u._id, accountId: u.defaultAccount, role }, config.jwtSecretKey);
     return { status: true, data: { token } };
   } catch (error) {
     return { status: false, message: error };
@@ -102,7 +108,8 @@ const mailConfirm = async (paramKey: string): Promise<any> => {
     const getUser = await Users.findOne({ mailConfirm: paramKey });
     const updateState = await Users.findByIdAndUpdate(getUser._id, { state: 1 }, { new: true });
     if (!getUser || !updateState) return { status: false, message: "BAD_KEY" };
-    const token = jwt.sign({ id: getUser._id }, config.jwtSecretKey);
+    const role = getUser.roles[getUser.defaultAccount];
+    const token = jwt.sign({ id: getUser._id, accountId: getUser.defaultAccount, role }, config.jwtSecretKey);
     return { status: true, data: { token } };
   } catch (error) {
     return { status: false, message: error };
@@ -117,7 +124,7 @@ const getMe = async (userId: string): Promise<any> => {
     return { status: false, message: error };
   }
 };
-const inviteUser = async (inviteEmail: string, accountId: string): Promise<any> => {
+const inviteUser = async (inviteEmail: string, role: string, accountId: string): Promise<any> => {
   try {
     const mainUser = await Users.findById(accountId);
     const inviteUserId = crypto
@@ -145,7 +152,14 @@ const inviteUser = async (inviteEmail: string, accountId: string): Promise<any> 
         inviteHash: crypto.randomBytes(32).toString("hex"),
         state: 1
       });
-      const u = await Users.findOneAndUpdate({ email: inviteEmail }, { $push: { accounts: mainUser.defaultAccount }, $set: { defaultAccount: mainUser.defaultAccount } });
+      const u = await Users.findOneAndUpdate(
+        { email: inviteEmail },
+        {
+          $push: { accounts: mainUser.defaultAccount },
+          $set: { defaultAccount: mainUser.defaultAccount, [`roles.${mainUser.defaultAccount}`]: role }
+        }
+      );
+
       await inviteUsers.save();
       if (process.env.NODE_ENV !== "test") inviteUserMail(u.email);
       return { status: true, isMember: true };
@@ -172,13 +186,15 @@ const createInvitedUser = async (inviteHash: string, userId: string, req: IUser)
       mailConfirm: crypto.randomBytes(32).toString("hex"),
       state: 1,
       accounts: [InvitedUser.accountId],
+      roles: { [InvitedUser.accountId]: req.role },
       password: crypto
         .createHmac("sha256", config.passwordSecretKey)
         .update(req.password)
         .digest("hex")
     });
     const newInvitedUser = await User.save();
-    const token = jwt.sign({ id: newInvitedUser._id }, config.jwtSecretKey);
+    const role = newInvitedUser.roles[newInvitedUser.defaultAccount];
+    const token = jwt.sign({ id: newInvitedUser._id, accountId: newInvitedUser.defaultAccount, role }, config.jwtSecretKey);
     return { status: true, data: { token, user: { ...newInvitedUser["_doc"] } } };
   } catch (error) {
     return { status: false, message: error };

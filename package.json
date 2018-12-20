@@ -1,11 +1,17 @@
 {
-  "name": "auth-mikroservice",
-  "author": {
-    "name": "Mert Koseoglu",
-    "email": "mert@tdsmaker.com"
-  },
+  "name": "rest-api",
+  "contributors": [
+    {
+      "name": "Mert Koseoglu",
+      "email": "mert@tdsmaker.com"
+    },
+    {
+      "name": "Melih Korkmaz",
+      "email": "melih@tdsmaker.com"
+    }
+  ],
   "version": "1.0.0",
-  "description": "TDSMaker Auth Mikroservice",
+  "description": "TDSMaker Application REST API",
   "main": "dist/server.js",
   "scripts": {
     "build": "tsc -b",
@@ -26,6 +32,7 @@
     "@types/jest": "^23.3.9",
     "@types/jsonwebtoken": "^8.3.0",
     "@types/mongoose": "^5.2.13",
+    "@types/puppeteer": "^1.11.1",
     "@types/supertest": "^2.0.6",
     "axios": "^0.18.0",
     "body-parser": "^1.18.2",
@@ -34,13 +41,16 @@
     "dotenv": "^6.0.0",
     "ejs": "^2.6.1",
     "express": "^4.16.3",
+    "fs-extra": "^7.0.1",
     "jest": "^23.6.0",
     "jsonwebtoken": "^8.3.0",
     "mongoose": "^5.3.13",
+    "puppeteer": "^1.11.0",
     "supertest": "^3.3.0",
     "ts-jest": "^23.10.4"
   },
   "devDependencies": {
+    "@types/fs-extra": "^5.0.4",
     "nodemon": "^1.18.4",
     "typescript": "^3.1.6"
   }

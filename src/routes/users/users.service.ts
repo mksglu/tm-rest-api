@@ -200,5 +200,21 @@ const createInvitedUser = async (inviteHash: string, userId: string, req: IUser)
     return { status: false, message: error };
   }
 };
-
-export default { createUser, loginUser, getUser, updateMe, updateUser, mailConfirm, getMe, inviteUser, createInvitedUser };
+const signUpCheckEmail = async (email: string): Promise<any> => {
+  try {
+    const emailValid = (val: string): boolean => /^[a-z0-9][a-z0-9-_\.]+@([a-z]|[a-z0-9]?[a-z0-9-]+[a-z0-9])\.[a-z0-9]{2,10}(?:\.[a-z]{2,10})?$/.test(val);
+    if (emailValid(email)) {
+      const isExist = await Users.countDocuments({ email });
+      if (isExist) {
+        return { status: true, isExist: true };
+      } else {
+        return { status: true, isExist: false };
+      }
+    } else {
+      return { status: false, message: "INVALID_EMAIL" };
+    }
+  } catch (error) {
+    return { status: false, message: error };
+  }
+};
+export default { signUpCheckEmail, createUser, loginUser, getUser, updateMe, updateUser, mailConfirm, getMe, inviteUser, createInvitedUser };

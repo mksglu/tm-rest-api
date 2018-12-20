@@ -4,6 +4,7 @@ import { isUserAuthenticated } from "../../middleware";
 import userService from "./users.service";
 const router = Router();
 router.post("/sign-up", (req: Request, res: Response) => {
+  console.log(req);
   if (req.query.invite && req.query.userId) {
     const {
       query: { invite },
@@ -19,6 +20,11 @@ router.post("/sign-up", (req: Request, res: Response) => {
       return res.status(201).send(response);
     });
   }
+});
+router.get("/sign-up/:email", async (req: Request, res: Response) => {
+  const response = await userService.signUpCheckEmail(req.params.email);
+  if (!response.status) return res.status(400).send(response);
+  return res.status(201).send(response);
 });
 router.post("/sign-in", (req: Request, res: Response) => {
   userService.loginUser(req.body).then(response => {

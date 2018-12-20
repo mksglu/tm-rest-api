@@ -104,6 +104,10 @@ describe("Users Route", () => {
           done();
         });
     });
+    it("it should be return true when user is exist and email is valid", async () => {
+      const res = await request(server).get(`/sign-up/${mockUser.email}`);
+      expect(res.status).toBe(200);
+    });
   });
   describe("/PUT users", () => {
     it("it should send email to invite user", done => {

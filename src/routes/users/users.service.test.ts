@@ -70,6 +70,18 @@ describe("Users Service", () => {
         done();
       });
     });
+    it("it should be return true when user is exist and email is valid", async () => {
+      const u = await userService.signUpCheckEmail(mockUser.email);
+      expect(u.isExist).toBe(true);
+    });
+    it("it should be return false when user is un exist and email is valid", async () => {
+      const u = await userService.signUpCheckEmail("unexist@email.com");
+      expect(u.isExist).toBe(false);
+    });
+    it("it should be return invalid email when email is invalid", async () => {
+      const u = await userService.signUpCheckEmail("invalidemail");
+      expect(u.message).toEqual("INVALID_EMAIL");
+    });
   });
   describe("/PUT users", () => {
     it("it should send email to invite user", done => {

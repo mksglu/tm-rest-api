@@ -24,7 +24,7 @@ const pdf = async (accountID: string, datasheetID: string, productName: string, 
     if (!accountID || !datasheetID || !productName || !version || !language || !html) {
       throw "some parameters are undefined or null.";
     }
-    const rootPath: any = config.pdf.path;
+    const rootPath: any = config.NODE_ENV === "dev" || config.NODE_ENV === "prod" ? config.pdf.path : config.pdf.path_test;
     const rootDir = path.resolve("./");
     const fullPath = `${rootDir}/${rootPath}/${accountID}/${datasheetID}/${version}/${language}`;
     await fs.ensureDirSync(fullPath);

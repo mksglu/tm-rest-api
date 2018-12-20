@@ -21,7 +21,7 @@ const createLogger = async error => {
 };
 const pdf = async (accountID: string, datasheetID: string, productName: string, version: string, language: string, html: any): Promise<string> => {
   try {
-    if (!accountID || datasheetID || productName || version || language || html) {
+    if (!accountID || !datasheetID || !productName || !version || !language || !html) {
       throw "some parameters are undefined or null.";
     }
     const rootPath: any = config.pdf.path;
@@ -35,11 +35,7 @@ const pdf = async (accountID: string, datasheetID: string, productName: string, 
     await browser.close();
     return language;
   } catch (error) {
-    try {
-      createLogger(error);
-    } catch (error) {
-      throw Error(error);
-    }
+    createLogger(error);
   }
 };
 

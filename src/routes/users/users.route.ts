@@ -4,7 +4,6 @@ import { isUserAuthenticated } from "../../middleware";
 import userService from "./users.service";
 const router = Router();
 router.post("/sign-up", (req: Request, res: Response) => {
-  console.log(req);
   if (req.query.invite && req.query.userId) {
     const {
       query: { invite },

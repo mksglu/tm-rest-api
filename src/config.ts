@@ -15,5 +15,9 @@ export default {
     senderAdress: process.env.EMAIL_SENDER_ADRESS,
     senderName: process.env.EMAIL_SENDER_NAME,
     key: process.env.SENDGRID_API_KEY
+  },
+  pdf: {
+    path: process.env.PDF_BUILDER_PATH,
+    path_test: process.env.PDF_BUILDER_PATH_TEST
   }
 };

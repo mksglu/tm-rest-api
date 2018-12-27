@@ -3,6 +3,7 @@ import * as fs from "fs-extra";
 import * as path from "path";
 import config from "../config";
 import { Logs } from "../models";
+import { deletePDF } from "./pdf.helper";
 
 const createLogger = async error => {
   try {
@@ -28,6 +29,7 @@ const html = async (accountID: string, datasheetID: string, productName: string,
     const fullPath = `${rootDir}/${rootPath}/${accountID}/${datasheetID}/${version}/${language}`;
     await fs.ensureDirSync(fullPath);
     await fs.writeFileSync(`${fullPath}/${productName}.html`, html, "utf-8");
+    await deletePDF(accountID, datasheetID, productName, version, language);
     return fullPath;
   } catch (error) {
     createLogger(error);

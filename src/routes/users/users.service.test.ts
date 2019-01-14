@@ -1,6 +1,6 @@
 process.env.NODE_ENV = "test";
 import * as mongoose from "mongoose";
-import config from "../../config";
+import { DB_CONNECTION } from "../../config";
 import { ALREADY_MEMBER_EMAIL, INVITE_EMAIL, mockUser } from "../../utils/test.utils";
 import userService from "./users.service";
 
@@ -9,7 +9,7 @@ describe("Users Service", () => {
   let userToken: any = {};
   beforeAll(done => {
     mongoose.connect(
-      config.connectionStr.dev,
+      DB_CONNECTION,
       { useNewUrlParser: true },
       done
     );

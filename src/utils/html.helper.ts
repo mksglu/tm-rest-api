@@ -1,7 +1,7 @@
 import * as crypto from "crypto";
 import * as fs from "fs-extra";
 import * as path from "path";
-import config from "../config";
+import { PDF_BUILDER_PATH, PDF_BUILDER_PATH_TEST } from "../config";
 import { Logs } from "../models";
 import { deletePDF } from "./pdf.helper";
 
@@ -24,7 +24,7 @@ const html = async (accountID: string, datasheetID: string, productName: string,
     if (!accountID || !datasheetID || !productName || !version || !language || !html) {
       throw "some parameters are undefined or null.";
     }
-    const rootPath: any = config.NODE_ENV === "dev" || config.NODE_ENV === "prod" ? config.pdf.path : config.pdf.path_test;
+    const rootPath: any = process.env.NODE_ENV === "dev" || process.env.NODE_ENV === "prod" ? PDF_BUILDER_PATH : PDF_BUILDER_PATH_TEST;
     const rootDir = path.resolve("./");
     const fullPath = `${rootDir}/${rootPath}/${accountID}/${datasheetID}/${version}/${language}`;
     await fs.ensureDirSync(fullPath);

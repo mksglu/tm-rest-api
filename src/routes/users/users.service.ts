@@ -1,7 +1,7 @@
 import * as crypto from "crypto";
 import { IUser } from "interfaces";
 import * as jwt from "jsonwebtoken";
-import config from "../../config";
+import { PASSWORD_SECRET_KEY, JWT_SECRET_KEY} from "../../config";
 import { Accounts, Invites, Users } from "../../models";
 import { emailTokenMail, inviteUserMail } from "../mail/mail.service";
 
@@ -20,7 +20,7 @@ const createUser = async (req: IUser): Promise<any> => {
     accounts: [],
     roles: {},
     password: crypto
-      .createHmac("sha256", config.passwordSecretKey)
+      .createHmac("sha256", PASSWORD_SECRET_KEY)
       .update(req.password)
       .digest("hex")
   });
@@ -54,12 +54,12 @@ const loginUser = async (req: IUser): Promise<any> => {
     if (!u) return { status: false, message: "USER_NOT_FOUND" };
     const isPasswordValid =
       crypto
-        .createHmac("sha256", config.passwordSecretKey)
+        .createHmac("sha256", PASSWORD_SECRET_KEY)
         .update(password)
         .digest("hex") === u.password;
     if (!isPasswordValid) return { status: false, message: "INVALID_PASSWORD" };
     const role = u.roles[u.defaultAccount];
-    const token = jwt.sign({ id: u._id, accountId: u.defaultAccount, role }, config.jwtSecretKey);
+    const token = jwt.sign({ id: u._id, accountId: u.defaultAccount, role }, JWT_SECRET_KEY);
     return { status: true, data: { token } };
   } catch (error) {
     return { status: false, message: error };
@@ -78,7 +78,7 @@ const updateMe = async (userId: string, req: IUser): Promise<any> => {
   try {
     if (req.password)
       req.password = crypto
-        .createHmac("sha256", config.passwordSecretKey)
+        .createHmac("sha256", PASSWORD_SECRET_KEY)
         .update(req.password)
         .digest("hex");
     const u = await Users.findByIdAndUpdate(userId, req, { new: true });
@@ -92,7 +92,7 @@ const updateUser = async (userId: string, paramId: string, req: IUser): Promise<
   try {
     if (req.password)
       req.password = crypto
-        .createHmac("sha256", config.passwordSecretKey)
+        .createHmac("sha256", PASSWORD_SECRET_KEY)
         .update(req.password)
         .digest("hex");
     if (userId !== paramId) return { status: false, message: "USER_NOT_FOUND" };
@@ -109,7 +109,7 @@ const mailConfirm = async (paramKey: string): Promise<any> => {
     const updateState = await Users.findByIdAndUpdate(getUser._id, { state: 1 }, { new: true });
     if (!getUser || !updateState) return { status: false, message: "BAD_KEY" };
     const role = getUser.roles[getUser.defaultAccount];
-    const token = jwt.sign({ id: getUser._id, accountId: getUser.defaultAccount, role }, config.jwtSecretKey);
+    const token = jwt.sign({ id: getUser._id, accountId: getUser.defaultAccount, role }, JWT_SECRET_KEY);
     return { status: true, data: { token } };
   } catch (error) {
     return { status: false, message: error };
@@ -188,13 +188,13 @@ const createInvitedUser = async (inviteHash: string, userId: string, req: IUser)
       accounts: [InvitedUser.accountId],
       roles: { [InvitedUser.accountId]: req.role },
       password: crypto
-        .createHmac("sha256", config.passwordSecretKey)
+        .createHmac("sha256", PASSWORD_SECRET_KEY)
         .update(req.password)
         .digest("hex")
     });
     const newInvitedUser = await User.save();
     const role = newInvitedUser.roles[newInvitedUser.defaultAccount];
-    const token = jwt.sign({ id: newInvitedUser._id, accountId: newInvitedUser.defaultAccount, role }, config.jwtSecretKey);
+    const token = jwt.sign({ id: newInvitedUser._id, accountId: newInvitedUser.defaultAccount, role }, JWT_SECRET_KEY);
     return { status: true, data: { token, user: { ...newInvitedUser["_doc"] } } };
   } catch (error) {
     return { status: false, message: error };

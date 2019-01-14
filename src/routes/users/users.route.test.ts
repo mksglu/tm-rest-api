@@ -2,13 +2,13 @@ process.env.NODE_ENV = "test";
 import * as mongoose from "mongoose";
 import * as request from "supertest";
 import server from "../../app";
-import config from "../../config";
+import { DB_CONNECTION } from "../../config";
 import { INVITE_EMAIL, mockUser } from "../../utils/test.utils";
 
 describe("Users Route", () => {
   beforeAll(done => {
     mongoose.connect(
-      config.connectionStr.dev,
+      DB_CONNECTION,
       { useNewUrlParser: true },
       done
     );

@@ -1,22 +1,22 @@
 import axios from "axios";
 import * as ejs from "ejs";
 import * as fs from "fs";
-import config from "../../config";
+import { EMAIL_SENDER_NAME, EMAIL_SENDER_ADRESS, EMAIL_SUBJECT, SENDGRID_API_KEY} from "../../config";
 const _email = (email: String, template: String) => {
   return axios({
     method: "post",
     url: "https://api.sendgrid.com/v3/mail/send",
     headers: {
-      Authorization: `Bearer ${config.email.key}`,
+      Authorization: `Bearer ${SENDGRID_API_KEY}`,
       "Content-Type": "application/json"
     },
     data: {
       personalizations: [{ to: [{ email }] }],
       from: {
-        name: config.email.senderName,
-        email: config.email.senderAdress
+        name: EMAIL_SENDER_NAME,
+        email: EMAIL_SENDER_ADRESS
       },
-      subject: config.email.subject,
+      subject: EMAIL_SUBJECT,
       content: [{ type: "text/html", value: template }]
     }
   });

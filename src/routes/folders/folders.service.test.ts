@@ -2,7 +2,7 @@ process.env.NODE_ENV = "test";
 import * as crypto from "crypto";
 import { IFolders } from "interfaces";
 import * as mongoose from "mongoose";
-import config from "../../config";
+import { DB_CONNECTION } from "../../config";
 import { decodeToken, mockUser } from "../../utils/test.utils";
 import usersService from "../users/users.service";
 import foldersService from "./folders.service";
@@ -10,7 +10,7 @@ import foldersService from "./folders.service";
 describe("Folders Service", () => {
   beforeAll(done => {
     mongoose.connect(
-      config.connectionStr.dev,
+      DB_CONNECTION,
       { useNewUrlParser: true },
       done
     );

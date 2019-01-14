@@ -2,10 +2,10 @@ import * as crypto from "crypto";
 import * as fs from "fs-extra";
 import * as path from "path";
 import * as puppeteer from "puppeteer";
-import config from "../config";
+import { PDF_BUILDER_PATH, PDF_BUILDER_PATH_TEST} from "../config";
 import { Logs } from "../models";
 
-const rootPath: any = config.NODE_ENV === "dev" || config.NODE_ENV === "prod" ? config.pdf.path : config.pdf.path_test;
+const rootPath: any = process.env.NODE_ENV === "dev" || process.env.NODE_ENV === "prod" ? PDF_BUILDER_PATH : PDF_BUILDER_PATH_TEST;
 const rootDir = path.resolve("./");
 
 const createLogger = async error => {
